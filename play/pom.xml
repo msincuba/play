@@ -4,7 +4,7 @@
     <groupId>com.msincuba</groupId>
     <artifactId>play</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
     <parent>
         <groupId>com.msincuba</groupId>
         <artifactId>play-parent</artifactId>
