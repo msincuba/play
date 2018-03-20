@@ -1,7 +1,7 @@
 package com.msincuba.play.domain.auth;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -57,7 +57,7 @@ public class User implements Serializable {
 
     @Column(name = "LAST_PASSWORD_RESET_DATE")
     @NotNull
-    private LocalDateTime lastPasswordResetDate;
+    private Instant lastPasswordResetDate;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

@@ -18,6 +18,14 @@ public class DateUtil {
     public static Date convert(LocalDateTime localDateTime) {
         return localDateTime != null ? Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant()) : null;
     }
+    
+    public static Date convert(Instant instant) {
+        return instant != null ? Date.from(instant) : null;
+    }
+
+    public static Instant convert(Date date) {
+        return date != null ? date.toInstant() : null;
+    }
 
     public static LocalDate asLocalDate(Date date) {
         return date != null ? Instant.ofEpochMilli(date.getTime()).atZone(ZoneId.systemDefault()).toLocalDate() : null;

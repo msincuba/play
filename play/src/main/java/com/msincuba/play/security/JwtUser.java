@@ -1,7 +1,7 @@
 package com.msincuba.play.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collection;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
@@ -21,7 +21,7 @@ public class JwtUser implements UserDetails {
     private final Collection<? extends GrantedAuthority> authorities;
     private final boolean enabled;
     @JsonIgnore
-    private final LocalDateTime lastPasswordResetDate;
+    private final Instant lastPasswordResetDate;
 
     public JwtUser(
             Long id,
@@ -31,7 +31,7 @@ public class JwtUser implements UserDetails {
             String email,
             String password, Collection<? extends GrantedAuthority> authorities,
             boolean enabled,
-            LocalDateTime lastPasswordResetDate
+            Instant lastPasswordResetDate
     ) {
         this.id = id;
         this.username = username;
