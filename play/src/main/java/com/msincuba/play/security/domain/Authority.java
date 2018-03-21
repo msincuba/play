@@ -1,4 +1,4 @@
-package com.msincuba.play.domain.auth;
+package com.msincuba.play.security.domain;
 
 import java.io.Serializable;
 import java.util.List;
@@ -12,11 +12,15 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class Authority implements Serializable {
 

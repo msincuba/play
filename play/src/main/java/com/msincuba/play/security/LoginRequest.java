@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class JwtAuthenticationRequest implements Serializable{
+public class LoginRequest implements Serializable{
     private String username;
     private String password;
 }

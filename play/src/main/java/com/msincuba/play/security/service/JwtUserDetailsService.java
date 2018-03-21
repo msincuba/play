@@ -1,7 +1,7 @@
 package com.msincuba.play.security.service;
 
-import com.msincuba.play.domain.auth.User;
-import com.msincuba.play.security.JwtUserFactory;
+import com.msincuba.play.security.domain.User;
+import com.msincuba.play.security.UserFactory;
 import com.msincuba.play.security.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -23,7 +23,7 @@ public class JwtUserDetailsService implements UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException(String.format("No user found with username '%s'.", username));
         } else {
-            return JwtUserFactory.create(user);
+            return UserFactory.create(user);
         }
     }
 

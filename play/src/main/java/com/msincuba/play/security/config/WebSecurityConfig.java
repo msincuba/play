@@ -1,11 +1,10 @@
-package com.msincuba.play.config;
+package com.msincuba.play.security.config;
 
 import com.msincuba.play.security.JwtAuthenticationEntryPoint;
-import com.msincuba.play.security.JwtTokenUtil;
+import com.msincuba.play.security.TokenProvider;
+import com.msincuba.play.security.filter.JwtTokenFilter;
 import com.msincuba.play.security.service.JwtUserDetailsService;
-import com.msincuba.play.web.filter.JwtAuthorizationTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -25,23 +24,30 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+    
+    private final AuthenticationProperties authenticationProperties;
 
-    @Value("${jwt.header:/Authorization}")
-    private String tokenHeader;
-    @Value("${jwt.route.authentication.path:/login}")
-    private String authenticationPath;
-
-    @Autowired
-    private JwtAuthenticationEntryPoint unauthorizedHandler;
-    @Autowired
-    private JwtTokenUtil jwtTokenUtil;
-    @Autowired
-    private JwtUserDetailsService jwtUserDetailsService;
+    private final JwtAuthenticationEntryPoint authorizedHandler;
+    
+    private final TokenProvider tokenProvider;
+    
+    private final JwtUserDetailsService userDetailsService;
+    
+    WebSecurityConfig(AuthenticationProperties authenticationProperties,
+            JwtAuthenticationEntryPoint authorizedHandler,
+            TokenProvider tokenProvider,
+            JwtUserDetailsService userDetailsService) {
+        super();
+        this.authenticationProperties = authenticationProperties;
+        this.authorizedHandler = authorizedHandler;
+        this.tokenProvider = tokenProvider;
+        this.userDetailsService = userDetailsService;
+    }
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         auth
-                .userDetailsService(jwtUserDetailsService)
+                .userDetailsService(userDetailsService)
                 .passwordEncoder(passwordEncoderBean());
     }
 
@@ -60,14 +66,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .csrf().disable()
-                .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
+                .exceptionHandling().authenticationEntryPoint(authorizedHandler).and()
                 .sessionManagement().sessionCreationPolicy((SessionCreationPolicy.STATELESS)).and()
                 .authorizeRequests()
                 .antMatchers("/h2-console/**/**").permitAll()
+                .antMatchers("/login/**").permitAll()
                 .antMatchers("/auth/**").permitAll()
                 .anyRequest().authenticated();
 
-        JwtAuthorizationTokenFilter authorizationTokenFilter = new JwtAuthorizationTokenFilter(userDetailsService(), jwtTokenUtil, tokenHeader);
+        JwtTokenFilter authorizationTokenFilter = new JwtTokenFilter(tokenProvider, authenticationProperties);
 
         http.addFilterBefore(authorizationTokenFilter, UsernamePasswordAuthenticationFilter.class);
         http.headers().frameOptions().sameOrigin().cacheControl();
@@ -77,7 +84,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     public void configure(WebSecurity web) throws Exception {
         web
                 .ignoring()
-                .antMatchers(HttpMethod.POST, authenticationPath).and()
+                .antMatchers(HttpMethod.POST, "/login").and()
                 .ignoring()
                 .antMatchers(
                         HttpMethod.GET,

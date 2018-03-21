@@ -1,0 +1,101 @@
+package com.msincuba.play.security;
+
+import com.msincuba.play.security.config.AuthenticationProperties;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+/**
+ *
+ * @author mlungisi
+ */
+public class TokenProviderTest {
+
+    private final String secretKey = "e5c9ee274ae87bc031adda32e27fa98b9290da83";
+    private final long ONE_MINUTE = 60000L;
+    private TokenProvider tokenProvider;
+    private AuthenticationProperties authenticationProperties;
+
+    @Before
+    public void setUp() {
+        authenticationProperties = new AuthenticationProperties();
+        authenticationProperties.setSecret(secretKey);
+        authenticationProperties.setExpiration(ONE_MINUTE);
+        authenticationProperties.setTokenHeader("Authorization");
+        tokenProvider = new TokenProvider(authenticationProperties);
+    }
+
+    @Test
+    public void testReturnFalseWhenJWThasInvalidSignature() {
+        boolean isTokenValid = tokenProvider.validateToken(createTokenWithDifferentSignature());
+
+        assertThat(isTokenValid).isEqualTo(false);
+    }
+
+    @Test
+    public void testReturnFalseWhenJWTisMalformed() {
+        Authentication authentication = createAuthentication();
+        String token = tokenProvider.createToken(authentication);
+        String invalidToken = token.substring(1);
+        boolean isTokenValid = tokenProvider.validateToken(invalidToken);
+
+        assertThat(isTokenValid).isEqualTo(false);
+    }
+
+    @Test
+    public void testReturnFalseWhenJWTisExpired() {
+        authenticationProperties.setExpiration(-ONE_MINUTE);
+        Authentication authentication = createAuthentication();
+        String token = tokenProvider.createToken(authentication);
+
+        boolean isTokenValid = tokenProvider.validateToken(token);
+
+        assertThat(isTokenValid).isEqualTo(false);
+    }
+
+    @Test
+    public void testReturnFalseWhenJWTisUnsupported() {
+        String unsupportedToken = createUnsupportedToken();
+
+        boolean isTokenValid = tokenProvider.validateToken(unsupportedToken);
+
+        assertThat(isTokenValid).isEqualTo(false);
+    }
+
+    @Test
+    public void testReturnFalseWhenJWTisInvalid() {
+        boolean isTokenValid = tokenProvider.validateToken("");
+
+        assertThat(isTokenValid).isEqualTo(false);
+    }
+
+    private Authentication createAuthentication() {
+        Collection<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority(AuthoritiesConstants.ANONYMOUS));
+        return new UsernamePasswordAuthenticationToken("anonymous", "anonymous", authorities);
+    }
+
+    private String createUnsupportedToken() {
+        return Jwts.builder()
+                .setPayload("payload")
+                .signWith(SignatureAlgorithm.HS512, secretKey)
+                .compact();
+    }
+
+    private String createTokenWithDifferentSignature() {
+        return Jwts.builder()
+                .setSubject("anonymous")
+                .signWith(SignatureAlgorithm.HS512, "e5c9ee274ae87bc031adda32e27fa98b9290da90")
+                .setExpiration(new Date(new Date().getTime() + ONE_MINUTE))
+                .compact();
+    }
+}

@@ -1,15 +1,16 @@
-package com.msincuba.play.rest.auth;
+package com.msincuba.play.security.rest;
 
 import com.msincuba.play.exception.AuthenticationException;
-import com.msincuba.play.security.JwtAuthenticationRequest;
-import com.msincuba.play.security.JwtAuthenticationResponse;
-import com.msincuba.play.security.JwtTokenUtil;
-import com.msincuba.play.security.JwtUser;
+import com.msincuba.play.security.LoginRequest;
+import com.msincuba.play.security.LoginResponse;
+import com.msincuba.play.security.TokenProvider;
+import com.msincuba.play.security.UserDto;
+import com.msincuba.play.security.config.AuthenticationProperties;
 import com.msincuba.play.utils.DateUtil;
 import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,10 +26,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public final class AuthenticationController {
 
-    @Value("${jwt.header}")
-    private String tokenHeader;
+    @Autowired
+    private AuthenticationProperties authenticationProperties;
     
-    private final JwtTokenUtil jwtTokenUtil;
+    private final TokenProvider tokenProvider;
 
     private final AuthenticationManager authenticationManager;
 
@@ -37,34 +38,34 @@ public final class AuthenticationController {
     public AuthenticationController(
             final AuthenticationManager authenticationManager, 
             @Qualifier("jwtUserDetailsService") final UserDetailsService userDetailsService,
-            final JwtTokenUtil jwtTokenUtil) {
+            final TokenProvider tokenProvider) {
         this.authenticationManager = authenticationManager;
         this.userDetailsService = userDetailsService;
-        this.jwtTokenUtil = jwtTokenUtil;
+        this.tokenProvider = tokenProvider;
     }
 
-    @PostMapping("${jwt.route.authentication.path:/login}")
-    public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtAuthenticationRequest authenticationRequest) {
+    @PostMapping("${app.security.authentication.path:/login}")
+    public ResponseEntity<?> createAuthenticationToken(@RequestBody LoginRequest authenticationRequest) {
         authenticate(authenticationRequest.getUsername(), authenticationRequest.getPassword());
 
         // Reload password post-security so we can generate the token
         final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getUsername());
-        final String token = jwtTokenUtil.generateToken(userDetails);
+        final String token = tokenProvider.createToken(userDetails);
 
         // Return the token
-        return ResponseEntity.ok(new JwtAuthenticationResponse(token));
+        return ResponseEntity.ok(new LoginResponse(token));
     }
     
-    @GetMapping("${jwt.route.authentication.refresh:/refresh}")
+    @GetMapping("${app.security.authentication.refresh:/refresh}")
     public ResponseEntity<?> refreshAndGetAuthenticationToken(HttpServletRequest request) {
-        String authToken = request.getHeader(tokenHeader);
+        String authToken = request.getHeader(authenticationProperties.getTokenHeader());
         final String token = authToken.substring(7);
-        String username = jwtTokenUtil.getUsernameFromToken(token);
-        JwtUser user = (JwtUser) userDetailsService.loadUserByUsername(username);
+        String username = tokenProvider.getUsernameFromToken(token);
+        UserDto user = (UserDto) userDetailsService.loadUserByUsername(username);
         
-        if (jwtTokenUtil.canTokenBeRefreshed(token, DateUtil.convert(user.getLastPasswordResetDate()))) {
-            String refreshedToken = jwtTokenUtil.refreshToken(token);
-            return ResponseEntity.ok(new JwtAuthenticationResponse(refreshedToken));
+        if (tokenProvider.canTokenBeRefreshed(token, DateUtil.convert(user.getLastPasswordResetDate()))) {
+            String refreshedToken = tokenProvider.refreshToken(token);
+            return ResponseEntity.ok(new LoginResponse(refreshedToken));
         } else {
             return ResponseEntity.badRequest().body(null);
         }

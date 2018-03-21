@@ -8,7 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 @Data
-public class JwtUser implements UserDetails {
+public class UserDto implements UserDetails {
 
     @JsonIgnore
     private final Long id;
@@ -23,7 +23,7 @@ public class JwtUser implements UserDetails {
     @JsonIgnore
     private final Instant lastPasswordResetDate;
 
-    public JwtUser(
+    public UserDto(
             Long id,
             String username,
             String firstname,

@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @AllArgsConstructor
-public class JwtAuthenticationResponse implements Serializable {
+public class LoginResponse implements Serializable {
 
     @Getter
     private final String token;

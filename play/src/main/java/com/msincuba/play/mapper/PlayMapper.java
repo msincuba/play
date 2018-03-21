@@ -12,6 +12,8 @@ import com.msincuba.play.dto.ContactDto;
 import com.msincuba.play.dto.EmploymentDto;
 import com.msincuba.play.dto.MemberDto;
 import com.msincuba.play.dto.PlanDto;
+import com.msincuba.play.security.UserDto;
+import com.msincuba.play.security.domain.User;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
@@ -29,4 +31,6 @@ public interface PlayMapper {
     EmploymentDto convert(Employment entity);
     Plan convert(PlanDto dto);    
     PlanDto convert(Plan entity);
+    User convert(UserDto dto);
+    
 }

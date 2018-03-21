@@ -1,4 +1,4 @@
-package com.msincuba.play.domain.auth;
+package com.msincuba.play.security.domain;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -14,11 +14,15 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class User implements Serializable {
 
