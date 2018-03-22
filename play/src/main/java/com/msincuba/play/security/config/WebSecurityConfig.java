@@ -16,7 +16,6 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -24,36 +23,35 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-    
+
     private final AuthenticationProperties authenticationProperties;
 
     private final JwtAuthenticationEntryPoint authorizedHandler;
-    
+
     private final TokenProvider tokenProvider;
-    
+
     private final JwtUserDetailsService userDetailsService;
-    
+
+    private final PasswordEncoder passwordEncoder;
+
     WebSecurityConfig(AuthenticationProperties authenticationProperties,
             JwtAuthenticationEntryPoint authorizedHandler,
             TokenProvider tokenProvider,
-            JwtUserDetailsService userDetailsService) {
+            JwtUserDetailsService userDetailsService,
+            final PasswordEncoder passwordEncoder) {
         super();
         this.authenticationProperties = authenticationProperties;
         this.authorizedHandler = authorizedHandler;
         this.tokenProvider = tokenProvider;
         this.userDetailsService = userDetailsService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         auth
                 .userDetailsService(userDetailsService)
-                .passwordEncoder(passwordEncoderBean());
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoderBean() {
-        return new BCryptPasswordEncoder();
+                .passwordEncoder(passwordEncoder);
     }
 
     @Bean
@@ -69,9 +67,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .exceptionHandling().authenticationEntryPoint(authorizedHandler).and()
                 .sessionManagement().sessionCreationPolicy((SessionCreationPolicy.STATELESS)).and()
                 .authorizeRequests()
-                .antMatchers("/h2-console/**/**").permitAll()
-                .antMatchers("/login/**").permitAll()
-                .antMatchers("/auth/**").permitAll()
+                .antMatchers("/h2-console/**/**", "/login/**", "/signup/**").permitAll()
+                .antMatchers("/v2/api-docs", "/configuration/ui", "/swagger-resources/**", "/configuration/**", "/swagger-ui.html", "/webjars/**").permitAll()
                 .anyRequest().authenticated();
 
         JwtTokenFilter authorizationTokenFilter = new JwtTokenFilter(tokenProvider, authenticationProperties);
@@ -96,7 +93,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/**/*.js"
                 ).and()
                 .ignoring()
-                .antMatchers("/h2-console/**/**");
+                .antMatchers("/h2-console/**/**").and()
+                .ignoring()
+                .antMatchers("/v2/api-docs",
+                        "/configuration/ui",
+                        "/swagger-resources/**",
+                        "/configuration/**",
+                        "/swagger-ui.html",
+                        "/webjars/**");
 
     }
 

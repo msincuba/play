@@ -1,11 +1,15 @@
 package com.msincuba.play.config;
 
+import java.util.Collections;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.service.ApiKey;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger.web.ApiKeyVehicle;
+import springfox.documentation.swagger.web.SecurityConfiguration;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @Configuration
@@ -18,6 +22,24 @@ public class SwaggerConfiguration {
                 .select()
                 .apis(RequestHandlerSelectors.any())
                 .paths(PathSelectors.any())
-                .build();
+                .build()
+                .securitySchemes(Collections.singletonList(apiKey()));
+    }
+
+    private ApiKey apiKey() {
+        return new ApiKey("apiKey", "Authorization", "header");
+    }
+
+    @Bean
+    public SecurityConfiguration security() {
+        return new SecurityConfiguration(
+                null, 
+                null, 
+                null, 
+                "PlaySecreteToBeChanged", 
+                "Bearer", 
+                ApiKeyVehicle.HEADER, 
+                "Authorization", 
+                ",");
     }
 }

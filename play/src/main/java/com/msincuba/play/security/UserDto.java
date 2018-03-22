@@ -1,64 +1,63 @@
 package com.msincuba.play.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.msincuba.play.security.domain.User;
 import java.time.Instant;
-import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 @Data
-public class UserDto implements UserDetails {
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserDto implements UserDetails{
 
     @JsonIgnore
-    private final Long id;
-    private final String username;
-    private final String firstname;
-    private final String lastname;
+    private Long id;
+    private String username;
+    private String firstname;
+    private String lastname;
     @JsonIgnore
-    private final String password;
-    private final String email;
-    private final Collection<? extends GrantedAuthority> authorities;
-    private final boolean enabled;
+    private String password;
+    private String email;
+    private Set<? extends GrantedAuthority> authorities;
+    private boolean enabled;
     @JsonIgnore
-    private final Instant lastPasswordResetDate;
+    private Instant lastPasswordResetDate;
 
-    public UserDto(
-            Long id,
-            String username,
-            String firstname,
-            String lastname,
-            String email,
-            String password, Collection<? extends GrantedAuthority> authorities,
-            boolean enabled,
-            Instant lastPasswordResetDate
-    ) {
-        this.id = id;
-        this.username = username;
-        this.firstname = firstname;
-        this.lastname = lastname;
-        this.email = email;
-        this.password = password;
-        this.authorities = authorities;
-        this.enabled = enabled;
-        this.lastPasswordResetDate = lastPasswordResetDate;
+    public UserDto(User user) {
+        this.id = user.getId();
+        this.username = user.getUsername();
+        this.firstname = user.getFirstname();
+        this.lastname = user.getLastname();
+        this.email = user.getEmail();
+        this.password = user.getPassword();
+        Set<SimpleGrantedAuthority> simpleGrantedAuthorities = user.getAuthorities().stream().map(authority -> {
+            return authority != null ? new SimpleGrantedAuthority(authority.getName()) : null;
+        }).collect(Collectors.toSet());
+        this.authorities = simpleGrantedAuthorities;
+        this.enabled = user.getEnabled();
+        this.lastPasswordResetDate = user.getLastPasswordResetDate();
     }
 
-    @JsonIgnore
     @Override
     public boolean isAccountNonExpired() {
         return true;
     }
 
-    @JsonIgnore
     @Override
     public boolean isAccountNonLocked() {
         return true;
     }
 
-    @JsonIgnore
     @Override
     public boolean isCredentialsNonExpired() {
         return true;
     }
+
 }

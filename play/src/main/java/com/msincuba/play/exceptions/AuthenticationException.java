@@ -1,4 +1,4 @@
-package com.msincuba.play.exception;
+package com.msincuba.play.exceptions;
 
 public class AuthenticationException extends RuntimeException {
     public AuthenticationException(String message, Throwable cause) {

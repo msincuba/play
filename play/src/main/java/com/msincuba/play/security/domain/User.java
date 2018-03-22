@@ -2,7 +2,7 @@ package com.msincuba.play.security.domain;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.List;
+import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -12,6 +12,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -20,6 +22,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Table(name = "user", uniqueConstraints = {
+    @UniqueConstraint(name = "uk_user_username", columnNames = {"USERNAME"})
+    ,
+        @UniqueConstraint(name = "uk_user_email", columnNames = {"EMAIL"})
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,7 +37,7 @@ public class User implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "USERNAME", length = 50, unique = true)
+    @Column(name = "USERNAME", length = 50)
     @NotNull
     @Size(min = 4, max = 50)
     private String username;
@@ -69,7 +76,7 @@ public class User implements Serializable {
             joinColumns = {
                 @JoinColumn(name = "USER_ID", referencedColumnName = "ID")},
             inverseJoinColumns = {
-                @JoinColumn(name = "AUTHORITY_ID", referencedColumnName = "ID")})
-    private List<Authority> authorities;
+                @JoinColumn(name = "AUTHORITY_NAME", referencedColumnName = "NAME")})
+    private Set<Authority> authorities;
 
 }
